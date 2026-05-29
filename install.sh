@@ -44,8 +44,11 @@ if [ "$OS" = "unsupported" ] || [ "$ARCH" = "unsupported" ]; then
 fi
 
 if [ "$OS" = "windows" ]; then
-    echo "Error: Use the .zip installer on Windows." >&2
-    echo "Download from: ${BASE_URL}/payu_windows_${ARCH}.zip" >&2
+    echo "On Windows, run this in PowerShell instead:" >&2
+    echo "" >&2
+    echo "  irm https://raw.githubusercontent.com/payu-intrepos/payu-cli/main/install.ps1 | iex" >&2
+    echo "" >&2
+    echo "Or download manually: ${BASE_URL}/payu_windows_x86_64.zip" >&2
     exit 1
 fi
 
