@@ -6,13 +6,20 @@ from PyInstaller.utils.hooks import collect_submodules
 
 block_cipher = None
 
-hiddenimports = collect_submodules("payu_cli") + [
-    "keyring.backends",
-    "keyring.backends.macOS",
-    "keyring.backends.SecretService",
-    "keyring.backends.Windows",
-    "keyring.backends.null",
-]
+hiddenimports = (
+    collect_submodules("payu_cli")
+    + collect_submodules("click")
+    + collect_submodules("typer")
+    + collect_submodules("rich")
+    + collect_submodules("httpx")
+    + [
+        "keyring.backends",
+        "keyring.backends.macOS",
+        "keyring.backends.SecretService",
+        "keyring.backends.Windows",
+        "keyring.backends.null",
+    ]
+)
 
 a = Analysis(
     ["payu_cli/main.py"],
