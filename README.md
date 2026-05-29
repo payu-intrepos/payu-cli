@@ -1,4 +1,4 @@
-# payu-cli
+# PayU-CLI
 
 Command-line interface for PayU payment operations — wraps the [PayU OneAPI](https://oneapi.payu.in) endpoints into a standalone CLI.
 
@@ -46,15 +46,6 @@ sudo mv payu /usr/local/bin/
 
 ```bash
 payu version
-```
-
-### Install from Source (developers)
-
-Requires Python 3.10+.
-
-```bash
-git clone <repo-url> && cd payu-cli
-pip install -e .
 ```
 
 ## Configure
@@ -124,35 +115,3 @@ payu refund summary --from 2024-01-01 --to 2024-01-31
 payu settlement get SETL-12345
 payu settlement get SETL-12345 --utr UTR123456 --tid TXN789
 ```
-
-## Building from Source
-
-To produce a standalone binary (no Python required to run):
-
-```bash
-pip install pyinstaller
-make build
-# → dist/payu (standalone binary)
-# → dist/payu_mac-os_arm64.tar.gz (release archive)
-```
-
-## Architecture
-
-```
-payu_cli/
-├── __init__.py       # version
-├── main.py           # typer app, command groups, config commands
-├── config.py         # credential profiles (keyring + file)
-├── auth.py           # OAuth client_credentials + direct bearer
-├── api.py            # httpx client wrapping all OneAPI endpoints
-├── formatters.py     # rich table output for every command
-└── commands/
-    ├── payments.py       # pay create-link, pay invoice
-    ├── transactions.py   # txn get, txn list, txn summary
-    ├── refunds.py        # refund search, refund summary
-    └── settlements.py    # settlement get
-```
-
-## License
-
-MIT
