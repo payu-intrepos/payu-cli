@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+*.spec.bak
+
+# Virtual environments
+.venv/
+venv/
+new_env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# PyInstaller
+*.manifest
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (secrets!)
+~$*
+
+# pytest
+.pytest_cache/
+
+# Credentials — NEVER commit
+*.keyring

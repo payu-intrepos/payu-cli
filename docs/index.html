@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayU CLI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #2c3e50; }
+    .hero { background: linear-gradient(135deg, #1a5276, #2e86c1); color: #fff; padding: 60px 20px; text-align: center; }
+    .hero h1 { font-size: 2.5rem; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+    .container { max-width: 720px; margin: 0 auto; padding: 40px 20px; }
+    h2 { font-size: 1.4rem; margin: 32px 0 12px; color: #1a5276; }
+    p, li { line-height: 1.7; }
+    .code-block { background: #2c3e50; color: #ecf0f1; border-radius: 8px; padding: 16px 20px; margin: 12px 0; font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace; font-size: 0.9rem; overflow-x: auto; position: relative; }
+    .code-block .copy { position: absolute; top: 8px; right: 10px; background: rgba(255,255,255,0.15); border: none; color: #ecf0f1; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+    .code-block .copy:hover { background: rgba(255,255,255,0.25); }
+    .platforms { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .platform { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 14px; }
+    .platform strong { display: block; margin-bottom: 4px; }
+    .platform code { font-size: 0.8rem; color: #c0392b; }
+    a { color: #2e86c1; }
+    footer { text-align: center; padding: 30px; color: #7f8c8d; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>PayU CLI</h1>
+  <p>Manage payments, transactions, refunds, and settlements from your terminal.</p>
+</div>
+
+<div class="container">
+  <h2>Quick Install</h2>
+  <p>Run this in your terminal (macOS or Linux):</p>
+  <div class="code-block">
+    <button class="copy" onclick="navigator.clipboard.writeText('curl -fsSL https://payu-intrepos.github.io/payu-cli/install.sh | bash')">Copy</button>
+    curl -fsSL https://payu-intrepos.github.io/payu-cli/install.sh | bash
+  </div>
+
+  <h2>Manual Download</h2>
+  <div class="platforms">
+    <div class="platform">
+      <strong>macOS (Apple Silicon)</strong>
+      <code>payu_mac-os_arm64.tar.gz</code>
+    </div>
+    <div class="platform">
+      <strong>macOS (Intel)</strong>
+      <code>payu_mac-os_x86_64.tar.gz</code>
+    </div>
+    <div class="platform">
+      <strong>Linux (x86_64)</strong>
+      <code>payu_linux_x86_64.tar.gz</code>
+    </div>
+    <div class="platform">
+      <strong>Linux (ARM64)</strong>
+      <code>payu_linux_arm64.tar.gz</code>
+    </div>
+  </div>
+  <p>Download from the <a href="https://github.com/payu-intrepos/payu-cli/releases/latest">latest release</a>, then:</p>
+  <div class="code-block">tar -xzf payu_*.tar.gz && sudo mv payu /usr/local/bin/</div>
+
+  <h2>Get Started</h2>
+  <div class="code-block">
+# Configure your credentials<br>
+payu config set<br><br>
+# Verify<br>
+payu version
+  </div>
+
+  <h2>Commands</h2>
+  <div class="code-block">
+payu pay create-link    # Create a payment link<br>
+payu pay list           # List payment links<br>
+payu txn list           # List transactions<br>
+payu txn get &lt;id&gt;       # Transaction details<br>
+payu refund search      # Search refunds<br>
+payu settlement get     # Settlement details<br>
+payu report create      # Generate CSV report
+  </div>
+
+  <p>Run <code>payu --help</code> or any command without arguments to see all options.</p>
+</div>
+
+<footer>PayU CLI &mdash; <a href="https://github.com/payu-intrepos/payu-cli">GitHub</a></footer>
+
+</body>
+</html>

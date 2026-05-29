@@ -1,0 +1,82 @@
+# Build standalone binaries and publish to GitHub Releases.
+#
+# Trigger: push a version tag like v0.1.0
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# This builds on macOS (arm64 + x86_64) and Linux (x86_64 + arm64),
+# then uploads all 4 tarballs to the GitHub Release.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write  # needed to create releases
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-14          # Apple Silicon (arm64)
+            label: mac-os_arm64
+          - os: macos-13          # Intel (x86_64)
+            label: mac-os_x86_64
+          - os: ubuntu-latest     # Linux x86_64
+            label: linux_x86_64
+          - os: ubuntu-24.04-arm  # Linux arm64
+            label: linux_arm64
+
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.label }})
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install . pyinstaller
+
+      - name: Build binary
+        run: pyinstaller payu.spec --clean --noconfirm
+
+      - name: Package tarball
+        run: |
+          cd dist
+          tar -czf payu_${{ matrix.label }}.tar.gz payu
+          ls -lh payu_${{ matrix.label }}.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: payu_${{ matrix.label }}
+          path: dist/payu_${{ matrix.label }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Publish Release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lhR artifacts/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/payu_*.tar.gz

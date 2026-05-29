@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "payu-cli"
+version = "0.1.0"
+description = "CLI for PayU payment operations — wraps the PayU OneAPI dashboard APIs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "typer[all]>=0.12.0",
+    "httpx>=0.28.1",
+    "rich>=13.7.0",
+    "python-dotenv>=1.0.0",
+    "keyring>=25.0.0",
+]
+
+[project.scripts]
+payu = "payu_cli.main:app"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pyinstaller>=6.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["payu_cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
