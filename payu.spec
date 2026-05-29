@@ -2,31 +2,52 @@
 """PyInstaller spec — produces a single `payu` binary."""
 
 import sys
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 
 block_cipher = None
 
-hiddenimports = (
-    collect_submodules("payu_cli")
-    + collect_submodules("click")
-    + collect_submodules("typer")
-    + collect_submodules("rich")
-    + collect_submodules("httpx")
-    + [
-        "keyring.backends",
-        "keyring.backends.macOS",
-        "keyring.backends.SecretService",
-        "keyring.backends.Windows",
-        "keyring.backends.null",
-    ]
-)
+# Collect everything for packages that PyInstaller struggles with
+all_datas = []
+all_binaries = []
+all_hiddenimports = []
+
+for pkg in ["click", "typer", "rich", "httpx", "httpcore", "anyio", "sniffio", "certifi", "h11", "idna"]:
+    try:
+        datas, binaries, hiddenimports = collect_all(pkg)
+        all_datas += datas
+        all_binaries += binaries
+        all_hiddenimports += hiddenimports
+    except Exception:
+        pass
+
+all_hiddenimports += collect_submodules("payu_cli") + [
+    "click",
+    "click.core",
+    "click.decorators",
+    "click.types",
+    "click.utils",
+    "click.exceptions",
+    "click.formatting",
+    "click.parser",
+    "click.termui",
+    "click.testing",
+    "click._compat",
+    "typer",
+    "typer.core",
+    "typer.main",
+    "keyring.backends",
+    "keyring.backends.macOS",
+    "keyring.backends.SecretService",
+    "keyring.backends.Windows",
+    "keyring.backends.null",
+]
 
 a = Analysis(
     ["payu_cli/main.py"],
     pathex=["."],
-    binaries=[],
-    datas=[],
-    hiddenimports=hiddenimports,
+    binaries=all_binaries,
+    datas=all_datas,
+    hiddenimports=all_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
