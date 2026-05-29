@@ -7,6 +7,7 @@ Returns raw dicts — formatting is handled by the commands layer.
 
 from __future__ import annotations
 
+import os
 from typing import Any, Optional
 from urllib.parse import urlencode
 
@@ -18,13 +19,31 @@ API_BASE = "https://oneapi.payu.in"
 TIMEOUT = 30.0
 
 
+def _ssl_verify():
+    """Determine SSL verification setting.
+
+    Priority:
+      1. PAYU_NO_VERIFY_SSL=1  → disable verification
+      2. PAYU_CA_BUNDLE=<path> → use custom CA cert
+      3. SSL_CERT_FILE=<path>  → use custom CA cert
+      4. Default               → standard verification
+    """
+    if os.getenv("PAYU_NO_VERIFY_SSL", "").strip() in ("1", "true", "yes"):
+        return False
+    for var in ("PAYU_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE"):
+        path = os.getenv(var, "").strip()
+        if path and os.path.isfile(path):
+            return path
+    return True
+
+
 class PayUClient:
     def __init__(self, profile: Optional[str] = None):
         self.tm = TokenManager(profile)
         self._client: Optional[httpx.AsyncClient] = None
 
     async def __aenter__(self):
-        self._client = httpx.AsyncClient(timeout=TIMEOUT)
+        self._client = httpx.AsyncClient(timeout=TIMEOUT, verify=_ssl_verify())
         return self
 
     async def __aexit__(self, *exc):
