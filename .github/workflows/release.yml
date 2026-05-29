@@ -47,10 +47,17 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install . pyinstaller
+        run: |
+          pip install . pyinstaller
+          pip install click typer rich httpx keyring
+          python -c "import click; print(f'click installed: {click.__version__}')"
 
       - name: Build binary
         run: pyinstaller payu.spec --clean --noconfirm
+
+      - name: Verify binary
+        if: matrix.ext == 'tar.gz'
+        run: ./dist/payu version
 
       - name: Package (tar.gz)
         if: matrix.ext == 'tar.gz'
