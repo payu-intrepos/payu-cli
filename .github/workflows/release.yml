@@ -23,7 +23,7 @@ jobs:
         include:
           - os: macos-14          # Apple Silicon (arm64)
             label: mac-os_arm64
-          - os: macos-13          # Intel (x86_64)
+          - os: macos-latest       # Intel (x86_64)
             label: mac-os_x86_64
           - os: ubuntu-latest     # Linux x86_64
             label: linux_x86_64
