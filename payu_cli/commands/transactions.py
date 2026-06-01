@@ -1,33 +1,34 @@
-"""
-Commands: payu txn ...
-"""
+"""Commands: payu txn ..."""
 
 from __future__ import annotations
 
-import asyncio
 from typing import Optional
 
 import typer
 
+from payu_cli._runner import run_async
 from payu_cli.api import PayUClient
 from payu_cli.formatters import (
+    fmt_error,
     fmt_transaction,
     fmt_transactions_list,
     fmt_transactions_summary,
-    fmt_error,
 )
 
 app = typer.Typer(name="txn", help="Transactions — get, list, summary", no_args_is_help=True)
 
 
 def _split(value: str) -> list[str] | None:
-    """Split comma-separated string into list, or None if empty."""
-    return [v.strip() for v in value.split(",") if v.strip()] or None
+    """Split a comma-separated string into a list, or return None if empty."""
+    parts = [v.strip() for v in value.split(",") if v.strip()]
+    return parts or None
 
 
-# ------------------------------------------------------------------
-# payu txn get <id>
-# ------------------------------------------------------------------
+def _require_paired_amount(min_amount: float | None, max_amount: float | None) -> None:
+    if (min_amount is None) != (max_amount is None):
+        fmt_error("--min-amount and --max-amount must be provided together (PayU API requirement)")
+        raise typer.Exit(1)
+
 
 @app.command("get")
 def get(
@@ -40,17 +41,8 @@ def get(
         async with PayUClient(profile) as client:
             return await client.get_transaction(payu_id)
 
-    try:
-        data = asyncio.run(_run())
-        fmt_transaction(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_transaction)
 
-
-# ------------------------------------------------------------------
-# payu txn list --from ... --to ...
-# ------------------------------------------------------------------
 
 @app.command("list")
 def list_txns(
@@ -69,11 +61,7 @@ def list_txns(
     profile: Optional[str] = typer.Option(None, "--profile"),
 ):
     """List transactions with filters."""
-
-    # Validate paired amount params
-    if (min_amount is None) != (max_amount is None):
-        fmt_error("--min-amount and --max-amount must be provided together (PayU API requirement)")
-        raise typer.Exit(1)
+    _require_paired_amount(min_amount, max_amount)
 
     async def _run():
         async with PayUClient(profile) as client:
@@ -92,17 +80,8 @@ def list_txns(
                 max_amount=max_amount,
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_transactions_list(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_transactions_list)
 
-
-# ------------------------------------------------------------------
-# payu txn summary --from ... --to ...
-# ------------------------------------------------------------------
 
 @app.command("summary")
 def summary(
@@ -119,10 +98,7 @@ def summary(
     profile: Optional[str] = typer.Option(None, "--profile"),
 ):
     """Get aggregated transaction summary with filters."""
-
-    if (min_amount is None) != (max_amount is None):
-        fmt_error("--min-amount and --max-amount must be provided together")
-        raise typer.Exit(1)
+    _require_paired_amount(min_amount, max_amount)
 
     async def _run():
         async with PayUClient(profile) as client:
@@ -139,9 +115,4 @@ def summary(
                 max_amount=max_amount,
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_transactions_summary(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_transactions_summary)

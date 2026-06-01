@@ -20,6 +20,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 
 import pytest
@@ -44,7 +45,7 @@ TEST_PROFILE = "test_ci_temp"
 
 def run(args: list[str], *, should_fail: bool = False) -> subprocess.CompletedProcess:
     """Run `payu <args>` and assert exit 0 (unless should_fail)."""
-    cmd = ["python", "-m", "payu_cli.main"] + args
+    cmd = [sys.executable, "-m", "payu_cli.main"] + args
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     if not should_fail:
         assert result.returncode == 0, (
@@ -61,7 +62,7 @@ def run(args: list[str], *, should_fail: bool = False) -> subprocess.CompletedPr
 
 def run_help(args: list[str]) -> subprocess.CompletedProcess:
     """Run a no-args command that shows help. Typer/Click may exit 0 or 2."""
-    cmd = ["python", "-m", "payu_cli.main"] + args
+    cmd = [sys.executable, "-m", "payu_cli.main"] + args
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     assert result.returncode in (0, 2), (
         f"Help command unexpected exit {result.returncode}: payu {' '.join(args)}\n"
@@ -76,8 +77,9 @@ def run_help(args: list[str]) -> subprocess.CompletedProcess:
 
 class TestVersion:
     def test_version(self):
+        from payu_cli import __version__
         r = run(["version"])
-        assert "0.1.0" in r.stdout
+        assert __version__ in r.stdout
 
 
 # ===================================================================

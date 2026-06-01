@@ -1,16 +1,14 @@
-"""
-Commands: payu settlement ...
-"""
+"""Commands: payu settlement ..."""
 
 from __future__ import annotations
 
-import asyncio
 from typing import Optional
 
 import typer
 
+from payu_cli._runner import run_async
 from payu_cli.api import PayUClient
-from payu_cli.formatters import fmt_settlement, fmt_error
+from payu_cli.formatters import fmt_settlement
 
 app = typer.Typer(name="settlement", help="Settlement details & tracking", no_args_is_help=True)
 
@@ -27,13 +25,6 @@ def get(
 
     async def _run():
         async with PayUClient(profile) as client:
-            return await client.get_settlement(
-                settlement_id, utr=utr, status=status, tid=tid
-            )
+            return await client.get_settlement(settlement_id, utr=utr, status=status, tid=tid)
 
-    try:
-        data = asyncio.run(_run())
-        fmt_settlement(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_settlement)
