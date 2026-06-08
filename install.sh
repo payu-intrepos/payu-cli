@@ -2,10 +2,10 @@
 # Quick installer for payu-cli.
 #
 # Usage:
-#   curl -fsSL https://payu.in/cli/install.sh | bash
+#   curl -fsSL https://payu-intrepos.github.io/payu-cli/install.sh | bash
 #
 # Or download manually:
-#   curl -fsSL https://payu.in/cli/latest/payu_mac-os_arm64.tar.gz | tar -xz
+#   curl -fsSL https://github.com/payu-intrepos/payu-cli/releases/latest/download/payu_mac-os_arm64.tar.gz | tar -xz
 #   sudo mv payu /usr/local/bin/
 
 set -euo pipefail

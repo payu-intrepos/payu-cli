@@ -1,4 +1,4 @@
-# payu-cli
+# PayU-CLI
 
 Command-line interface for PayU payment operations — wraps the [PayU OneAPI](https://oneapi.payu.in) endpoints into a standalone CLI.
 
@@ -7,40 +7,52 @@ Command-line interface for PayU payment operations — wraps the [PayU OneAPI](h
 ### Quick Install (macOS & Linux)
 
 ```bash
-curl -fsSL https://payu.in/cli/install.sh | bash
+curl -fsSL https://payu-intrepos.github.io/payu-cli/install.sh | bash
 ```
 
 This detects your OS and architecture, downloads the binary, and installs it to `~/.local/bin`.
+
+### Quick Install (Windows)
+
+Run in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/payu-intrepos/payu-cli/main/install.ps1 | iex
+```
 
 ### Manual Download
 
 **macOS (Apple Silicon):**
 ```bash
-curl -fsSL https://payu.in/cli/latest/payu_mac-os_arm64.tar.gz | tar -xz
+curl -fsSL https://github.com/payu-intrepos/payu-cli/releases/latest/download/payu_mac-os_arm64.tar.gz | tar -xz
 chmod +x ./payu
 sudo mv payu /usr/local/bin/
 ```
 
 **macOS (Intel):**
 ```bash
-curl -fsSL https://payu.in/cli/latest/payu_mac-os_x86_64.tar.gz | tar -xz
+curl -fsSL https://github.com/payu-intrepos/payu-cli/releases/latest/download/payu_mac-os_x86_64.tar.gz | tar -xz
 chmod +x ./payu
 sudo mv payu /usr/local/bin/
 ```
 
 **Linux (x86_64):**
 ```bash
-curl -fsSL https://payu.in/cli/latest/payu_linux_x86_64.tar.gz | tar -xz
+curl -fsSL https://github.com/payu-intrepos/payu-cli/releases/latest/download/payu_linux_x86_64.tar.gz | tar -xz
 chmod +x ./payu
 sudo mv payu /usr/local/bin/
 ```
 
 **Linux (ARM64):**
 ```bash
-curl -fsSL https://payu.in/cli/latest/payu_linux_arm64.tar.gz | tar -xz
+curl -fsSL https://github.com/payu-intrepos/payu-cli/releases/latest/download/payu_linux_arm64.tar.gz | tar -xz
 chmod +x ./payu
 sudo mv payu /usr/local/bin/
 ```
+
+**Windows (x86_64):**
+
+Download [`payu_windows_x86_64.zip`](https://github.com/payu-intrepos/payu-cli/releases/latest/download/payu_windows_x86_64.zip), extract, and add the folder to your `PATH`.
 
 ### Verify
 
@@ -125,34 +137,3 @@ payu settlement get SETL-12345
 payu settlement get SETL-12345 --utr UTR123456 --tid TXN789
 ```
 
-## Building from Source
-
-To produce a standalone binary (no Python required to run):
-
-```bash
-pip install pyinstaller
-make build
-# → dist/payu (standalone binary)
-# → dist/payu_mac-os_arm64.tar.gz (release archive)
-```
-
-## Architecture
-
-```
-payu_cli/
-├── __init__.py       # version
-├── main.py           # typer app, command groups, config commands
-├── config.py         # credential profiles (keyring + file)
-├── auth.py           # OAuth client_credentials + direct bearer
-├── api.py            # httpx client wrapping all OneAPI endpoints
-├── formatters.py     # rich table output for every command
-└── commands/
-    ├── payments.py       # pay create-link, pay invoice
-    ├── transactions.py   # txn get, txn list, txn summary
-    ├── refunds.py        # refund search, refund summary
-    └── settlements.py    # settlement get
-```
-
-## License
-
-MIT
