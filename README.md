@@ -60,15 +60,6 @@ Download [`payu_windows_x86_64.zip`](https://github.com/payu-intrepos/payu-cli/r
 payu version
 ```
 
-### Install from Source (developers)
-
-Requires Python 3.10+.
-
-```bash
-git clone <repo-url> && cd payu-cli
-pip install -e .
-```
-
 ## Configure
 
 ```bash
@@ -136,4 +127,3 @@ payu refund summary --from 2024-01-01 --to 2024-01-31
 payu settlement get SETL-12345
 payu settlement get SETL-12345 --utr UTR123456 --tid TXN789
 ```
-
