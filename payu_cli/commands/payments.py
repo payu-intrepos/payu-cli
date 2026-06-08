@@ -1,16 +1,14 @@
-"""
-Commands: payu pay ...
-"""
+"""Commands: payu pay ..."""
 
 from __future__ import annotations
 
-import asyncio
 from typing import Optional
 
 import typer
 
+from payu_cli._runner import run_async
 from payu_cli.api import PayUClient
-from payu_cli.formatters import fmt_payment_link, fmt_invoice_details, fmt_json, fmt_error
+from payu_cli.formatters import fmt_error, fmt_invoice_details, fmt_json, fmt_payment_link
 
 app = typer.Typer(name="pay", help="Payment links & invoices", no_args_is_help=True)
 
@@ -36,12 +34,7 @@ def create_link(
                 email=email,
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_payment_link(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_payment_link)
 
 
 @app.command("invoice")
@@ -65,12 +58,7 @@ def invoice(
                 page_size=limit,
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_invoice_details(data, invoice_id)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, lambda data: fmt_invoice_details(data, invoice_id))
 
 
 @app.command("send")
@@ -91,12 +79,7 @@ def send(
                 invoice_number, via_email=via_email, via_sms=via_sms
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_json(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_json)
 
 
 @app.command("status")
@@ -110,12 +93,7 @@ def status(
         async with PayUClient(profile) as client:
             return await client.get_payment_link(invoice_number)
 
-    try:
-        data = asyncio.run(_run())
-        fmt_json(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_json)
 
 
 @app.command("list")
@@ -131,16 +109,13 @@ def list_links(
     async def _run():
         async with PayUClient(profile) as client:
             return await client.list_payment_links(
-                date_from=date_from, date_to=date_to,
-                page_offset=offset, page_size=limit,
+                date_from=date_from,
+                date_to=date_to,
+                page_offset=offset,
+                page_size=limit,
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_json(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_json)
 
 
 @app.command("update")
@@ -165,9 +140,4 @@ def update(
                 is_active=active,
             )
 
-    try:
-        data = asyncio.run(_run())
-        fmt_json(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_json)

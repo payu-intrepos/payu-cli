@@ -1,27 +1,23 @@
-"""
-Commands: payu report ...
-"""
+"""Commands: payu report ..."""
 
 from __future__ import annotations
 
-import asyncio
 from typing import Optional
 
 import typer
 
+from payu_cli._runner import run_async
 from payu_cli.api import PayUClient
-from payu_cli.formatters import fmt_json, fmt_error
+from payu_cli.formatters import fmt_error, fmt_json
 
-VALID_SERVICES = ["transactions", "settlements", "refunds", "payouts"]
+VALID_SERVICES = ("transactions", "settlements", "refunds", "payouts")
 
 app = typer.Typer(name="report", help="Generate & download CSV reports", no_args_is_help=True)
 
 
 @app.command("create")
 def create(
-    service: str = typer.Argument(
-        help=f"Report type ({', '.join(VALID_SERVICES)})",
-    ),
+    service: str = typer.Argument(help=f"Report type ({', '.join(VALID_SERVICES)})"),
     date_from: str = typer.Option(..., "--from", help="Start (YYYY-MM-DD HH:MM:SS)"),
     date_to: str = typer.Option(..., "--to", help="End   (YYYY-MM-DD HH:MM:SS)"),
     profile: Optional[str] = typer.Option(None, "--profile"),
@@ -35,12 +31,7 @@ def create(
         async with PayUClient(profile) as client:
             return await client.create_report(service, date_from, date_to)
 
-    try:
-        data = asyncio.run(_run())
-        fmt_json(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_json)
 
 
 @app.command("get")
@@ -54,9 +45,4 @@ def get(
         async with PayUClient(profile) as client:
             return await client.get_report(report_id)
 
-    try:
-        data = asyncio.run(_run())
-        fmt_json(data)
-    except Exception as e:
-        fmt_error(str(e))
-        raise typer.Exit(1)
+    run_async(_run, fmt_json)

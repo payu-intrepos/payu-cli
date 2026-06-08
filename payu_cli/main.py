@@ -30,20 +30,17 @@ from rich.console import Console
 from rich.table import Table
 
 from payu_cli import __version__
-from payu_cli.config import (
-    save_profile,
-    load_profile,
-    list_profiles,
-    delete_profile,
-)
-from payu_cli.commands.payments import app as pay_app
-from payu_cli.commands.transactions import app as txn_app
-from payu_cli.commands.refunds import app as refund_app
-from payu_cli.commands.settlements import app as settlement_app
-from payu_cli.commands.reports import app as report_app
 from payu_cli.cli_group import CleanGroup
+from payu_cli.commands.payments import app as pay_app
+from payu_cli.commands.refunds import app as refund_app
+from payu_cli.commands.reports import app as report_app
+from payu_cli.commands.settlements import app as settlement_app
+from payu_cli.commands.transactions import app as txn_app
+from payu_cli.config import delete_profile, list_profiles, load_profile, save_profile
+from payu_cli.formatters import fmt_error
 
 console = Console()
+
 
 # ---------------------------------------------------------------------------
 # Root app
@@ -57,12 +54,9 @@ app = typer.Typer(
     cls=CleanGroup,
 )
 
-# Register sub-command groups
-app.add_typer(pay_app, cls=CleanGroup)
-app.add_typer(txn_app, cls=CleanGroup)
-app.add_typer(refund_app, cls=CleanGroup)
-app.add_typer(settlement_app, cls=CleanGroup)
-app.add_typer(report_app, cls=CleanGroup)
+# Register sub-command groups.
+for sub_app in (pay_app, txn_app, refund_app, settlement_app, report_app):
+    app.add_typer(sub_app, cls=CleanGroup)
 
 
 # ---------------------------------------------------------------------------
@@ -76,10 +70,33 @@ def version():
 
 
 # ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+def _show_profile(profile: Optional[str]) -> None:
+    """Print the resolved profile, masking the secret."""
+    creds = load_profile(profile)
+    table = Table(title=f"Profile: {creds['profile']}", show_header=False, border_style="blue")
+    table.add_column("Key", style="bold")
+    table.add_column("Value")
+    table.add_row("client_id", creds["client_id"] or "[dim]not set[/dim]")
+    secret = creds["client_secret"]
+    table.add_row(
+        "client_secret",
+        ("••••" + secret[-4:]) if secret else "[dim]not set[/dim]",
+    )
+    table.add_row("merchant_id", creds["merchant_id"] or "[dim]not set[/dim]")
+    table.add_row("env", creds["env"])
+    console.print(table)
+
+
+# ---------------------------------------------------------------------------
 # payu config ...
 # ---------------------------------------------------------------------------
 
-config_app = typer.Typer(name="config", help="Manage credential profiles", no_args_is_help=True, cls=CleanGroup)
+config_app = typer.Typer(
+    name="config", help="Manage credential profiles", no_args_is_help=True, cls=CleanGroup,
+)
 app.add_typer(config_app)
 
 
@@ -88,11 +105,7 @@ def config_set(
     profile: str = typer.Option("default", "--profile", "-p", help="Profile name"),
     client_id: str = typer.Option(..., "--client-id", prompt=True, help="PayU Client ID"),
     client_secret: str = typer.Option(
-        ...,
-        "--client-secret",
-        prompt=True,
-        hide_input=True,
-        help="PayU Client Secret",
+        ..., "--client-secret", prompt=True, hide_input=True, help="PayU Client Secret",
     ),
     merchant_id: str = typer.Option(..., "--merchant-id", prompt=True, help="Merchant ID"),
     env: str = typer.Option("production", "--env", help="Environment (production / test)"),
@@ -108,25 +121,9 @@ def config_set(
 
 
 @config_app.command("show")
-def config_show(
-    profile: Optional[str] = typer.Option(None, "--profile", "-p"),
-):
+def config_show(profile: Optional[str] = typer.Option(None, "--profile", "-p")):
     """Display the active profile (secrets are masked)."""
-    creds = load_profile(profile)
-
-    table = Table(title=f"Profile: {creds['profile']}", show_header=False, border_style="blue")
-    table.add_column("Key", style="bold")
-    table.add_column("Value")
-
-    table.add_row("client_id", creds["client_id"] or "[dim]not set[/dim]")
-    table.add_row(
-        "client_secret",
-        ("••••" + creds["client_secret"][-4:]) if creds["client_secret"] else "[dim]not set[/dim]",
-    )
-    table.add_row("merchant_id", creds["merchant_id"] or "[dim]not set[/dim]")
-    table.add_row("env", creds["env"])
-
-    console.print(table)
+    _show_profile(profile)
 
 
 @config_app.command("list")
@@ -141,18 +138,18 @@ def config_list():
 
 
 @config_app.command("delete")
-def config_delete(
-    profile: str = typer.Argument(help="Profile name to delete"),
-):
+def config_delete(profile: str = typer.Argument(help="Profile name to delete")):
     """Delete a saved profile."""
     delete_profile(profile)
 
 
 # ---------------------------------------------------------------------------
-# payu account ... (maps to MCP's account management tools)
+# payu account ...
 # ---------------------------------------------------------------------------
 
-account_app = typer.Typer(name="account", help="Manage merchant accounts (profiles)", no_args_is_help=True, cls=CleanGroup)
+account_app = typer.Typer(
+    name="account", help="Manage merchant accounts (profiles)", no_args_is_help=True, cls=CleanGroup,
+)
 app.add_typer(account_app)
 
 
@@ -170,11 +167,9 @@ def account_list():
 
 
 @account_app.command("show")
-def account_show(
-    profile: Optional[str] = typer.Option(None, "--profile", "-p", help="Profile to show"),
-):
+def account_show(profile: Optional[str] = typer.Option(None, "--profile", "-p", help="Profile to show")):
     """Show the current active merchant account."""
-    config_show(profile)
+    _show_profile(profile)
 
 
 @account_app.command("add")
@@ -188,35 +183,34 @@ def account_add(
     env: str = typer.Option("production", "--env", help="Environment (production / test)"),
 ):
     """Add a new merchant account."""
-    save_profile(profile, client_id=client_id, client_secret=client_secret, merchant_id=merchant_id, env=env)
+    save_profile(
+        profile,
+        client_id=client_id,
+        client_secret=client_secret,
+        merchant_id=merchant_id,
+        env=env,
+    )
 
 
 @account_app.command("switch")
-def account_switch(
-    profile: str = typer.Argument(help="Profile name to switch to"),
-):
+def account_switch(profile: str = typer.Argument(help="Profile name to switch to")):
     """Switch the active account by setting PAYU_PROFILE."""
     profiles = list_profiles()
     if profile not in profiles:
-        fmt_error(f"Profile '{profile}' not found. Available: {', '.join(profiles)}")
+        fmt_error(
+            f"Profile '{profile}' not found. "
+            f"Available: {', '.join(profiles) if profiles else '(none)'}"
+        )
         raise typer.Exit(1)
     console.print(f"[green]✓[/green] To switch, run: [bold]export PAYU_PROFILE={profile}[/bold]")
     console.print(f"  Or pass [bold]--profile {profile}[/bold] to any command.")
 
 
 @account_app.command("remove")
-def account_remove(
-    profile: str = typer.Argument(help="Profile name to remove"),
-):
+def account_remove(profile: str = typer.Argument(help="Profile name to remove")):
     """Remove a merchant account."""
     delete_profile(profile)
 
-
-# ---------------------------------------------------------------------------
-# Entry
-# ---------------------------------------------------------------------------
-
-from payu_cli.formatters import fmt_error  # noqa: E402
 
 if __name__ == "__main__":
     app()

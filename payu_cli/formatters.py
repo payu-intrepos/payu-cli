@@ -27,6 +27,14 @@ def _safe(d: dict, *keys: str, default: str = "—") -> str:
     return str(cur) if cur is not None else default
 
 
+def _as_float(value: Any) -> float:
+    """Coerce API-supplied numeric (sometimes a string) into a float; 0.0 on failure."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 # ------------------------------------------------------------------
 # Payment link
 # ------------------------------------------------------------------
@@ -77,7 +85,7 @@ def fmt_invoice_details(data: dict, invoice_id: str) -> None:
         table.add_row(
             _safe(txn, "transactionId"),
             _safe(txn, "createdOn"),
-            f"₹{txn.get('settledAmount', 0):,.2f}",
+            f"₹{_as_float(txn.get('settledAmount', 0)):,.2f}",
             _safe(txn, "status"),
             _safe(txn, "mode"),
             _safe(txn, "merchantReferenceId"),
@@ -242,18 +250,20 @@ def fmt_refunds(data: dict) -> None:
 
 def fmt_refunds_summary(data: dict) -> None:
     result = data.get("result", data)
+    if not isinstance(result, dict):
+        console.print_json(data=data)
+        return
 
     table = Table(title="Refunds Summary", show_header=False, border_style="yellow")
     table.add_column("Metric", style="bold", min_width=24)
     table.add_column("Value", justify="right")
 
-    if isinstance(result, dict):
-        for key, val in result.items():
-            if isinstance(val, dict):
-                for sub_key, sub_val in val.items():
-                    table.add_row(f"  {key} → {sub_key}", str(sub_val))
-            else:
-                table.add_row(key, str(val))
+    for key, val in result.items():
+        if isinstance(val, dict):
+            for sub_key, sub_val in val.items():
+                table.add_row(f"  {key} → {sub_key}", str(sub_val))
+        else:
+            table.add_row(key, str(val))
     console.print(table)
 
 
